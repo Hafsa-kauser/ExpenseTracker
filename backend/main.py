@@ -11,6 +11,7 @@ app.add_middleware(
         "http://localhost:5174",
         "http://localhost:3000",
            "http://localhost:5173",
+           "https://expense-tracker-hazel-sigma-30.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
