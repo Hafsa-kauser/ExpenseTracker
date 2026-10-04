@@ -1,185 +1,186 @@
-import React, { useEffect, useState } from "react";
+import React,{useEffect,useState} from "react";
 import "./App.css";
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-function App() {
-const [amount, setAmount] = useState("");
-const [category, setCategory] = useState("Food");
-const [date, setDate] = useState("2026-09-30");
-const [note, setNote] = useState("");
 
-const [expenses, setExpenses] = useState([]);
-const [editId, setEditId] = useState(null);
+const API_URL=import.meta.env.VITE_API_URL||"http://localhost:8000";
 
-useEffect(function () {
+function App(){
+const [amount,setAmount]=useState("");
+const [category,setCategory]=useState("Food");
+const [date,setDate]=useState("2026-09-30");
+const [note,setNote]=useState("");
+const [expenses,setExpenses]=useState([]);
+const [editId,setEditId]=useState(null);
+
+useEffect(function(){
 getExpenses();
-}, []);
+},[]);
 
-function getExpenses() {
-fetch(API_URL + "/expenses")
-.then(function (response) {
+function getExpenses(){
+fetch(`${API_URL}/expenses`)
+.then(function(response){
+if(!response.ok){
+throw new Error("Could not load expenses");
+}
 return response.json();
 })
-.then(function (data) {
+.then(function(data){
 setExpenses(data);
 })
-.catch(function (error) {
+.catch(function(error){
 console.log(error);
+alert("Could not load expenses: "+error.message);
 });
 }
 
-function handleSubmit(event) {
+function handleSubmit(event){
 event.preventDefault();
 
-if (amount === "" || date === "") {
+if(amount===""||date===""){
 alert("Please enter amount and date");
 return;
 }
 
-if (editId !== null) {
+if(Number(amount)<=0){
+alert("Amount must be greater than zero");
+return;
+}
+
+if(editId!==null){
 updateExpense();
-} else {
+}else{
 addExpense();
 }
 }
 
-function addExpense() {
-const url =
-API_URL + "/expenses"+
-"amount=" +
-encodeURIComponent(amount) +
-"&category=" +
-encodeURIComponent(category) +
-"&date=" +
-encodeURIComponent(date) +
-"&note=" +
-encodeURIComponent(note);
+function addExpense(){
+const url=API_URL+"/expenses?"+
+"amount="+encodeURIComponent(amount)+
+"&category="+encodeURIComponent(category)+
+"&date="+encodeURIComponent(date)+
+"&note="+encodeURIComponent(note);
 
-fetch(url, {
-method: "POST"
+fetch(url,{
+method:"POST"
 })
-.then(function (response) {
-if (!response.ok) {
+.then(function(response){
+if(!response.ok){
 throw new Error("Could not add expense");
 }
-
 return response.json();
 })
-.then(function () {
+.then(function(){
 getExpenses();
 clearForm();
 })
-.catch(function (error) {
+.catch(function(error){
 console.log(error);
-alert("Could not add expense: " + error.message);
+alert("Could not add expense: "+error.message);
 });
 }
 
-function updateExpense() {
-const url =
-API_URL + "/expenses"+
-editId +
-"?" +
-"amount=" +
-encodeURIComponent(amount) +
-"&category=" +
-encodeURIComponent(category) +
-"&date=" +
-encodeURIComponent(date) +
-"&note=" +
-encodeURIComponent(note);
+function updateExpense(){
+const url=API_URL+"/expenses/"+editId+"?"+
+"amount="+encodeURIComponent(amount)+
+"&category="+encodeURIComponent(category)+
+"&date="+encodeURIComponent(date)+
+"&note="+encodeURIComponent(note);
 
-fetch(url, {
-method: "PUT"
+fetch(url,{
+method:"PUT"
 })
-.then(function (response) {
-if (!response.ok) {
+.then(function(response){
+if(!response.ok){
 throw new Error("Could not update expense");
 }
-
 return response.json();
 })
-.then(function () {
+.then(function(){
 getExpenses();
 clearForm();
 })
-.catch(function (error) {
+.catch(function(error){
 console.log(error);
-alert("Could not update expense: " + error.message);
+alert("Could not update expense: "+error.message);
 });
 }
 
-function editExpense(expense) {
+function editExpense(expense){
 setEditId(expense.id);
 setAmount(expense.amount);
 setCategory(expense.category);
 setDate(expense.date);
-setNote(expense.note);
+setNote(expense.note||"");
 }
 
-function deleteExpense(id) {
-const confirmDelete = window.confirm("Delete this expense?");
+function deleteExpense(id){
+const confirmDelete=window.confirm("Delete this expense?");
 
-if (!confirmDelete) {
+if(!confirmDelete){
 return;
 }
 
-fetch(API_URL + "/expenses" + id, {
-method: "DELETE"
+fetch(`${API_URL}/expenses/${id}`,{
+method:"DELETE"
 })
-.then(function (response) {
+.then(function(response){
+if(!response.ok){
+throw new Error("Could not delete expense");
+}
 return response.json();
 })
-.then(function () {
+.then(function(){
 getExpenses();
 })
-.catch(function (error) {
+.catch(function(error){
 console.log(error);
+alert("Could not delete expense: "+error.message);
 });
 }
 
-function clearForm() {
+function clearForm(){
 setAmount("");
-setCategory("");
+setCategory("Food");
 setDate("");
 setNote("");
 setEditId(null);
 }
 
-function calculateTotal() {
-let total = 0;
+function calculateTotal(){
+let total=0;
 
-expenses.forEach(function (expense) {
-total = total + expense.amount;
+expenses.forEach(function(expense){
+total=total+Number(expense.amount);
 });
 
 return total;
 }
 
-function calculateCategoryTotal(categoryName) {
-let total = 0;
+function calculateCategoryTotal(categoryName){
+let total=0;
 
-expenses.forEach(function (expense) {
-if (expense.category === categoryName) {
-total = total + expense.amount;
+expenses.forEach(function(expense){
+if(expense.category===categoryName){
+total=total+Number(expense.amount);
 }
 });
 
 return total;
 }
 
-function formatDate(dateValue) {
-const dateObject = new Date(dateValue);
+function formatDate(dateValue){
+const dateObject=new Date(dateValue);
 
-const options = {
-month: "short",
-day: "numeric"
+const options={
+month:"short",
+day:"numeric"
 };
 
-return dateObject.toLocaleDateString("en-US", options);
+return dateObject.toLocaleDateString("en-US",options);
 }
 
-return (
+return(
 <div className="app">
+
 <header className="header">
 <div>
 <h1>Expense Tracker</h1>
@@ -187,9 +188,11 @@ return (
 </header>
 
 <main className="container">
+
 <div className="topSection">
 
 <div className="expenseFormCard">
+
 <form onSubmit={handleSubmit}>
 
 <div className="formgroup">
@@ -201,7 +204,7 @@ return (
 type="number"
 placeholder="1,250"
 value={amount}
-onChange={function (event) {
+onChange={function(event){
 setAmount(event.target.value);
 }}
 />
@@ -213,7 +216,7 @@ setAmount(event.target.value);
 
 <select
 value={category}
-onChange={function (event) {
+onChange={function(event){
 setCategory(event.target.value);
 }}
 >
@@ -232,7 +235,7 @@ setCategory(event.target.value);
 <input
 type="date"
 value={date}
-onChange={function (event) {
+onChange={function(event){
 setDate(event.target.value);
 }}
 />
@@ -245,7 +248,7 @@ setDate(event.target.value);
 type="text"
 placeholder="Lunch with friends"
 value={note}
-onChange={function (event) {
+onChange={function(event){
 setNote(event.target.value);
 }}
 />
@@ -255,12 +258,10 @@ setNote(event.target.value);
 className="addButton"
 type="submit"
 >
-{editId !== null
-? "Update Expense"
-: "+ Add Expense"}
+{editId!==null?"Update Expense":"+ Add Expense"}
 </button>
 
-{editId !== null && (
+{editId!==null&&(
 <button
 className="cancelButton"
 type="button"
@@ -274,6 +275,7 @@ Cancel
 </div>
 
 <div className="summaryCard">
+
 <h2>Monthly Summary</h2>
 
 <div className="totalBox">
@@ -301,8 +303,7 @@ Food
 </span>
 
 <strong>
-₹
-{calculateCategoryTotal("Food").toLocaleString("en-IN")}
+₹{calculateCategoryTotal("Food").toLocaleString("en-IN")}
 </strong>
 </div>
 
@@ -313,8 +314,7 @@ Travel
 </span>
 
 <strong>
-₹
-{calculateCategoryTotal("Travel").toLocaleString("en-IN")}
+₹{calculateCategoryTotal("Travel").toLocaleString("en-IN")}
 </strong>
 </div>
 
@@ -325,8 +325,7 @@ Shopping
 </span>
 
 <strong>
-₹
-{calculateCategoryTotal("Shopping").toLocaleString("en-IN")}
+₹{calculateCategoryTotal("Shopping").toLocaleString("en-IN")}
 </strong>
 </div>
 
@@ -337,8 +336,7 @@ Bills
 </span>
 
 <strong>
-₹
-{calculateCategoryTotal("Bills").toLocaleString("en-IN")}
+₹{calculateCategoryTotal("Bills").toLocaleString("en-IN")}
 </strong>
 </div>
 
@@ -350,6 +348,7 @@ Bills
 <div className="expensesSection">
 
 <div className="sectionTitle">
+
 <div>
 <h2>Expenses</h2>
 <p>Your recent transactions</p>
@@ -358,6 +357,7 @@ Bills
 <span className="expenseNumber">
 {expenses.length} expenses
 </span>
+
 </div>
 
 <div className="expenseTable">
@@ -370,8 +370,9 @@ Bills
 <div>Actions</div>
 </div>
 
-{expenses.map(function (expense) {
-return (
+{expenses.map(function(expense){
+
+return(
 <div
 className="tableRow"
 key={expense.id}
@@ -388,12 +389,11 @@ key={expense.id}
 </div>
 
 <div className="note">
-{expense.note || "No note"}
+{expense.note||"No note"}
 </div>
 
 <div className="expenseAmount">
-₹
-{expense.amount.toLocaleString("en-IN")}
+₹{Number(expense.amount).toLocaleString("en-IN")}
 </div>
 
 <div className="actions">
@@ -401,7 +401,7 @@ key={expense.id}
 <button
 className="editButton"
 type="button"
-onClick={function () {
+onClick={function(){
 editExpense(expense);
 }}
 >
@@ -411,7 +411,7 @@ Edit
 <button
 className="deleteButton"
 type="button"
-onClick={function () {
+onClick={function(){
 deleteExpense(expense.id);
 }}
 >
@@ -419,11 +419,13 @@ Delete
 </button>
 
 </div>
+
 </div>
 );
+
 })}
 
-{expenses.length === 0 && (
+{expenses.length===0&&(
 <div className="emptyState">
 No expenses found.
 </div>
