@@ -30,7 +30,7 @@ def get_db():
     return connection
 
 
-# Create database/table
+
 def create_table():
     connection = get_db()
 
@@ -51,7 +51,7 @@ def create_table():
 create_table()
 
 
-# GET all expenses
+
 @app.get("/expenses")
 def get_expenses():
 
@@ -68,7 +68,6 @@ def get_expenses():
     return [dict(expense) for expense in expenses]
 
 
-# ADD expense
 @app.post("/expenses")
 def add_expense(
     amount: float,
@@ -106,7 +105,7 @@ def add_expense(
     return dict(expense)
 
 
-# UPDATE expense
+
 @app.put("/expenses/{expense_id}")
 def update_expense(
     expense_id: int,
@@ -153,7 +152,7 @@ def update_expense(
     return dict(expense)
 
 
-# DELETE expense
+
 @app.delete("/expenses/{expense_id}")
 def delete_expense(expense_id: int):
 
